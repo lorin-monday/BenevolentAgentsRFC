@@ -101,6 +101,10 @@ def get_agent_github_id(agent_name: str, redis_url: str, redis_token: str) -> st
         headers={"Authorization": f"Bearer {redis_token}"}
     )
     with urllib.request.urlopen(req) as r:
+        # Double parse: Upstash REST API returns {"result": "<JSON string>"}
+        # The result value is itself a JSON-encoded string, so we parse twice:
+        # 1st parse: extracts the "result" field from the Upstash envelope
+        # 2nd parse: deserializes the raw JSON string stored in Redis
         caps = json.loads(json.loads(r.read())["result"])
     return caps.get(agent_name, {}).get("external_ids", {}).get("github")
 ```
